@@ -1,11 +1,25 @@
 # Trivy triaged-exceptions baseline for cypherid-workflow-infra (CZID-264).
+# Policy: ACCEPT the inherited HIGH/CRITICAL backlog, hard-fail on NEW only. Do NOT remediate here —
+# the findings below are logged to the backlog for fix-forward. Established from PR #3's first run.
 #
-# Policy: ACCEPT the inherited backlog, hard-fail on NEW HIGH/CRITICAL only. Do NOT remediate here —
-# add a triaged finding ID (CVE-… or AVD-… check id), one per line, with a short reason + ticket, e.g.:
-#
-#   AVD-AWS-0089   # S3 access logging - inherited from the vendored swipe module; tracked in CZID-xxx
-#   CVE-2024-xxxxx # transitive in a chalice/lambda dep; no fix available (ignore-unfixed already on)
-#
-# The first PR run establishes the real baseline: triage whatever HIGH/CRITICAL trivy reports into this
-# file (with reasons) so the gate goes green on the inherited set and blocks only NEW findings thereafter.
-# Mirrors czid-infra's .trivyignore approach so both infra repos triage the same way.
+# Mapping (fix-forward in the backlog):
+#   AVD-AWS-0031  ECR repository tags are mutable
+#   AVD-AWS-0089  S3 access logging not enabled
+#   AVD-AWS-0095  SNS topic not encrypted
+#   AVD-AWS-0096  SQS queue not encrypted
+#   AVD-AWS-0104  Security group allows unrestricted egress (CRITICAL — review first)
+#   AVD-AWS-0130  Launch template does not require IMDS token
+#   AVD-AWS-0132  Bucket not encrypted with a customer-managed key
+#   AVD-DS-0002   Dockerfile: no non-root USER
+#   AVD-DS-0015   Dockerfile: 'yum clean all' missing
+#   AVD-DS-0029   Dockerfile: '--no-install-recommends' missing
+AVD-AWS-0031
+AVD-AWS-0089
+AVD-AWS-0095
+AVD-AWS-0096
+AVD-AWS-0104
+AVD-AWS-0130
+AVD-AWS-0132
+AVD-DS-0002
+AVD-DS-0015
+AVD-DS-0029
