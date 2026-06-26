@@ -1,0 +1,11 @@
+# Trivy triaged-exceptions baseline for cypherid-workflow-infra (CZID-264).
+#
+# Policy: ACCEPT the inherited backlog, hard-fail on NEW HIGH/CRITICAL only. Do NOT remediate here —
+# add a triaged finding ID (CVE-… or AVD-… check id), one per line, with a short reason + ticket, e.g.:
+#
+#   AVD-AWS-0089   # S3 access logging - inherited from the vendored swipe module; tracked in CZID-xxx
+#   CVE-2024-xxxxx # transitive in a chalice/lambda dep; no fix available (ignore-unfixed already on)
+#
+# The first PR run establishes the real baseline: triage whatever HIGH/CRITICAL trivy reports into this
+# file (with reasons) so the gate goes green on the inherited set and blocks only NEW findings thereafter.
+# Mirrors czid-infra's .trivyignore approach so both infra repos triage the same way.
