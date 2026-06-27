@@ -1,11 +1,9 @@
 name: OpenTofu Validate
 
-# fmt + validate gate (CZID-16). Runs on ubuntu-latest (linux/amd64) — required:
-# the vendored swipe module uses the deprecated hashicorp/template provider, which
-# publishes no darwin_arm64 build, so this cannot run on Apple-Silicon self-hosted
-# runners. tofu validate needs the chalice lambda modules, so we run the same
-# `make package-lambdas` codegen the plan workflow uses before init/validate.
-
+# Calls the shared reusable OpenTofu fmt + validate gate — the SSOT in thorvath-slower/ci-workflows
+# (CZID-310), paired with security.yml. The chalice lambda modules are codegen'd in `prepare` (after the
+# fmt check, so generated files aren't format-gated); validate sources environment.test and clears the
+# remote-backend args so it can init -backend=false. check_lockfile enforces the provider pin (CZID-30).
 on:
   push:
     branches:
@@ -24,57 +22,21 @@ on:
 permissions:
   contents: read
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   validate:
-    name: tofu fmt + validate
-    runs-on: ubuntu-latest
-    steps:
-      - name: Git clone the repository
-        uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-      - name: Reconfigure Git to use HTTP authentication
-        # The swipe module source is github.com/...; CI runners have no SSH key.
-        run: git config --global url."https://github.com/".insteadOf ssh://git@github.com/
-      - name: Setup OpenTofu
-        uses: opentofu/setup-opentofu@v2
-        with:
-          tofu_version_file: .opentofu-version
-          tofu_wrapper: false
-      - name: tofu fmt -check
-        # Check committed config only — run before codegen so generated
-        # files (variables.tf, chalice.tf.json) are not formatting-gated.
-        run: tofu fmt -check -recursive
-      - name: Package Lambdas (codegen prerequisite for validate)
-        run: |
-          source ./environment.test
-          make package-lambdas
-      - name: tofu init + validate
-        run: |
-          source ./environment.test
-          # environment.test exports TF_CLI_ARGS_init (--backend-config) for real
-          # applies; clear it so `tofu init -backend=false` doesn't conflict.
-          unset TF_CLI_ARGS_init TF_CLI_ARGS_output
-          tofu init -backend=false -input=false
-          tofu validate
-      - name: Verify provider lockfile is committed and current
-        # `tofu init` above updates .terraform.lock.hcl in place if a provider
-        # constraint changed without re-locking (or creates it if missing). Fail
-        # the build on any drift so provider versions stay pinned + reproducible
-        # and a malicious/broken provider release can't slip in (CZID-30).
-        run: |
-          if [ ! -f .terraform.lock.hcl ]; then
-            echo "::error::.terraform.lock.hcl is missing — run 'tofu providers lock -platform=linux_amd64 -platform=darwin_amd64' and commit it."
-            exit 1
-          fi
-          if ! git diff --exit-code -- .terraform.lock.hcl; then
-            echo "::error::.terraform.lock.hcl drifted during init — re-run 'tofu providers lock' and commit the result."
-            exit 1
-          fi
+    uses: thorvath-slower/ci-workflows/.github/workflows/tofu-ci.yml@v1
+    with:
+      fmt_path: .
+      prepare: |
+        source ./environment.test
+        make package-lambdas
+      validate_command: |
+        source ./environment.test
+        unset TF_CLI_ARGS_init TF_CLI_ARGS_output
+        tofu init -backend=false -input=false
+        tofu validate
+      check_lockfile: true
