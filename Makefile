@@ -9,7 +9,7 @@ endif
 endif
 
 .PHONY: check
-check: ## Run CI checks locally: tofu fmt + flake8 + codegen/validate + security scanners (CZID-311)
+check: ## Run CI checks locally: terraform fmt + flake8 + codegen/validate + security scanners (CZID-311)
 	@./bin/check
 
 deploy: package-lambdas templates init-tf
