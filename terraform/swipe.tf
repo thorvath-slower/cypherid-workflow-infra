@@ -1,5 +1,8 @@
 module "swipe" {
-  source = "github.com/chanzuckerberg/swipe?ref=v1.4.9"
+  # In-house standalone of chanzuckerberg/swipe v1.4.9 (thorvath-slower/swipe,
+  # private) carrying two upstream fixes: the process_sfn_event CloudWatch
+  # target_id label and the miniwdl status2.json read. Pinned by tag.
+  source = "github.com/thorvath-slower/swipe?ref=v1.4.9-seqtoid.1"
   tags = {
     Name = "swipe"
   }
