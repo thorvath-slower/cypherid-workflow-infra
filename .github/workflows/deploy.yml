@@ -11,7 +11,8 @@ on:
         default: 'dev'
 
 env:
-  AWS_REGION : us-west-2
+  # CZID-83 (CICD-6): region from Actions variables (fallback preserves current behavior when unset).
+  AWS_REGION: ${{ vars.AWS_REGION || 'us-west-2' }}
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
   DEPLOYMENT_ENVIRONMENT: ${{ inputs.environment }}
   # CZID-40 (CICD-6): drive the CI identity from repo/org Actions variables so it is rotatable and

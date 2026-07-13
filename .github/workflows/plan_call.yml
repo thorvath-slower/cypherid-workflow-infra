@@ -24,7 +24,8 @@ jobs:
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     env:
-      AWS_REGION: us-west-2
+      # CZID-83 (CICD-6): region from Actions variables (fallback preserves current behavior).
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-west-2' }}
     outputs:
       plan-artifact-id: ${{ steps.upload-plan.outputs.artifact-id }}
       result-artifact-id: ${{ steps.upload-result.outputs.artifact-id }}
@@ -78,7 +79,7 @@ jobs:
           set +x
           echo "TF_DATA_DIR=$TF_DATA_DIR"
           mkdir -p "$TF_DATA_DIR"
-          jq -n ".region=\"us-west-2\" | .bucket=env.TF_S3_BUCKET | .key=env.APP_NAME+env.DEPLOYMENT_ENVIRONMENT | .encrypt=true" > "$TF_DATA_DIR/aws_config.json"
+          jq -n ".region=env.AWS_REGION | .bucket=env.TF_S3_BUCKET | .key=env.APP_NAME+env.DEPLOYMENT_ENVIRONMENT | .encrypt=true" > "$TF_DATA_DIR/aws_config.json"
           jq . "$TF_DATA_DIR/aws_config.json"
       - name: Package Lambdas and create Templates
         run: |

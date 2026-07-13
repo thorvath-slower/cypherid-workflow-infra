@@ -19,9 +19,15 @@ on:
         default: 'dev'
 
 env:
-  AWS_REGION: us-west-2
-  AWS_DEFAULT_REGION: us-west-2
+  # CZID-83 (CICD-6): drive region + CI identity from repo/org Actions variables so they are
+  # rotatable and not tied to a hardcoded account. Fallbacks preserve the current behavior when
+  # the vars are unset, so this is safe to merge before the Actions variables are configured.
+  # Mirrors the deploy.yml identity pattern.
+  AWS_REGION: ${{ vars.AWS_REGION || 'us-west-2' }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_REGION || 'us-west-2' }}
   DEPLOYMENT_ENVIRONMENT: ${{ inputs.environment }}
+  CI_ACCOUNT_ID: ${{ vars.CI_ACCOUNT_ID || '941377154785' }}
+  GHA_ROLE: ${{ vars.GHA_ROLE || 'gha-seqtoid' }}
 
 permissions:
   id-token: write
@@ -36,7 +42,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6.1.0
         with:
-          role-to-assume: arn:aws:iam::941377154785:role/gha-seqtoid
+          role-to-assume: arn:aws:iam::${{ env.CI_ACCOUNT_ID }}:role/${{ env.GHA_ROLE }}
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ env.AWS_REGION }}
       - name: Resolve account id
